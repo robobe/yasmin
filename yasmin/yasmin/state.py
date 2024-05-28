@@ -44,10 +44,13 @@ class State(ABC):
 
         return outcome
 
-    @abstractmethod
+    # @abstractmethod
     def execute(self, blackboard: Blackboard) -> str:
-        raise NotImplementedError(
-            "Subclasses must implement the execute method")
+        pass
+        # raise NotImplementedError(
+        #     "Subclasses must implement the execute method")
+    def tick(self, blackboard: Blackboard) -> str:
+        pass
 
     def __str__(self) -> str:
         return self.__class__.__name__
