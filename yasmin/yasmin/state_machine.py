@@ -84,6 +84,7 @@ class StateMachine(State):
         if outcome != self.__current_state_name:
             new_state_: State = self._states[outcome]["state"]
             new_state_.timer_reset()
+            new_state_.previous_state_name = self.__current_state_name
             # check outcome belongs to state
             if outcome not in state_.get_outcomes():
                 raise Exception(

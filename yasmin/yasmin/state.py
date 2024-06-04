@@ -19,12 +19,15 @@ from abc import ABC, abstractmethod
 from yasmin.blackboard import Blackboard
 from time import time
 
+NO_PREVIOUS_STATE = None
+
 class State(ABC):
 
     def __init__(self, outcomes: List[str]) -> None:
         self._outcomes = []
         self._canceled = False
         self.__start_time = 0
+        self.__previous_state_name = NO_PREVIOUS_STATE
         self.timer_reset()
 
         if outcomes:
@@ -54,7 +57,13 @@ class State(ABC):
     def tick(self, blackboard: Blackboard) -> str:
         pass
 
-
+    @property
+    def previous_state_name(self):
+        return self.__previous_state_name
+    
+    @previous_state_name.setter
+    def previous_state_name(self, state_name):
+        self.__previous_state_name = state_name
 
     def timer_reset(self):
         self.__start_time = time()
