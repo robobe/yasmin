@@ -34,7 +34,7 @@ class StateMachine(State):
 
         self._states = {}
         self._start_state = None
-        self.__current_state = None
+        self.__current_state_name = None
         self.__current_state_lock = Lock()
         self.__trigger = Event()
         self.__wait_time = 0
@@ -60,7 +60,8 @@ class StateMachine(State):
     def set_start_state(self, name: str) -> None:
         self._start_state = name
         with self.__current_state_lock:
-            self.__current_state = self._start_state
+            self.__current_state_name = self._start_state
+            print(self.__current_state_name)
 
     def get_start_state(self) -> str:
         return self._start_state
@@ -68,22 +69,25 @@ class StateMachine(State):
     def cancel_state(self) -> None:
         super().cancel_state()
         with self.__current_state_lock:
-            if self.__current_state:
-                self._states[self.__current_state]["state"].cancel_state()
+            if self.__current_state_name:
+                self._states[self.__current_state_name]["state"].cancel_state()
 
     def tick_tok(self, blackboard: Blackboard) -> str:
 
         
 
         with self.__current_state_lock:
-            state = self._states[self.__current_state]
+            state: Dict = self._states[self.__current_state_name]
         
-        outcome = state["state"].tick(blackboard)
-        if outcome != self.__current_state:
+        state_: State = state["state"]
+        outcome = state_.tick(blackboard)
+        if outcome != self.__current_state_name:
+            new_state_: State = self._states[outcome]["state"]
+            new_state_.timer_reset()
             # check outcome belongs to state
-            if outcome not in state["state"].get_outcomes():
+            if outcome not in state_.get_outcomes():
                 raise Exception(
-                    f"Outcome ({outcome}) is not register in state {self.__current_state}"
+                    f"Outcome ({outcome}) is not register in state {self.__current_state_name}"
                 )
 
             # translate outcome using transitions
@@ -93,13 +97,13 @@ class StateMachine(State):
             # outcome is an outcome of the sm
             if outcome in self.get_outcomes():
                 with self.__current_state_lock:
-                    self.__current_state = None
+                    self.__current_state_name = None
                 return outcome
 
             # outcome is a state
             elif outcome in self._states:
                 with self.__current_state_lock:
-                    self.__current_state = outcome
+                    self.__current_state_name = outcome
 
             # outcome is not in the sm
             else:
@@ -111,19 +115,19 @@ class StateMachine(State):
     def execute(self, blackboard: Blackboard) -> str:
 
         with self.__current_state_lock:
-            self.__current_state = self._start_state
+            self.__current_state_name = self._start_state
 
         while True:
 
             with self.__current_state_lock:
-                state = self._states[self.__current_state]
+                state = self._states[self.__current_state_name]
 
             outcome = state["state"](blackboard)
-            if outcome != self.__current_state:
+            if outcome != self.__current_state_name:
                 # check outcome belongs to state
                 if outcome not in state["state"].get_outcomes():
                     raise Exception(
-                        f"Outcome ({outcome}) is not register in state {self.__current_state}"
+                        f"Outcome ({outcome}) is not register in state {self.__current_state_name}"
                     )
 
                 # translate outcome using transitions
@@ -133,13 +137,13 @@ class StateMachine(State):
                 # outcome is an outcome of the sm
                 if outcome in self.get_outcomes():
                     with self.__current_state_lock:
-                        self.__current_state = None
+                        self.__current_state_name = None
                     return outcome
 
                 # outcome is a state
                 elif outcome in self._states:
                     with self.__current_state_lock:
-                        self.__current_state = outcome
+                        self.__current_state_name = outcome
 
                 # outcome is not in the sm
                 else:
@@ -150,8 +154,8 @@ class StateMachine(State):
 
     def get_current_state(self) -> str:
         with self.__current_state_lock:
-            if self.__current_state:
-                return self.__current_state
+            if self.__current_state_name:
+                return self.__current_state_name
 
         return ""
 

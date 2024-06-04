@@ -17,13 +17,15 @@
 from typing import List
 from abc import ABC, abstractmethod
 from yasmin.blackboard import Blackboard
-
+from time import time
 
 class State(ABC):
 
     def __init__(self, outcomes: List[str]) -> None:
         self._outcomes = []
         self._canceled = False
+        self.__start_time = 0
+        self.timer_reset()
 
         if outcomes:
             self._outcomes = outcomes
@@ -51,6 +53,14 @@ class State(ABC):
         #     "Subclasses must implement the execute method")
     def tick(self, blackboard: Blackboard) -> str:
         pass
+
+
+
+    def timer_reset(self):
+        self.__start_time = time()
+
+    def timer_elapsed(self):
+        return time() - self.__start_time
 
     def __str__(self) -> str:
         return self.__class__.__name__
