@@ -64,4 +64,6 @@ install(
   DESTINATION lib/${PROJECT_NAME}
 )
 
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+include(Packing)
 ament_package()
