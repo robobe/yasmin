@@ -64,5 +64,7 @@ install(
   DESTINATION lib/${PROJECT_NAME}
 )
 
-include(Packing)
+if(DEFINED OUTPUT_FOLDER)
+  include(Packing)
+endif()
 ament_package()
